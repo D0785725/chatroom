@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #chat-log {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+    <h1>聊天室</h1>
+    <div id="chat-log"></div>
+    <input id="username" type="text" placeholder="你的名字">
+    <input id="message-input" type="text" placeholder="輸入消息">
+    <button id="send-message">發送</button>
+    <script>
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-log').innerHTML += `<p><strong>${data.username}:</strong> ${data.message}</p>`;
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#send-message').onclick = function(e) {
+            const username = document.querySelector('#username').value;
+            const messageInput = document.querySelector('#message-input');
+            const message = messageInput.value;
+
+            chatSocket.send(JSON.stringify({
+                'username': username,
+                'message': message
+            }));
+
+            messageInput.value = '';
+        };
+    </script>
+</body>
+</html>
